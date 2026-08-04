@@ -1,16 +1,18 @@
 # Releasing
 
-Releases are tag-driven: pushing `vX.Y.Z` runs the `release` workflow, which re-verifies
+Releases are tag-driven: a `vX.Y.Z` tag runs the `release` workflow, which re-verifies
 (typecheck → tests → build → packaging + size checks) and publishes to npm with **provenance**.
 
 ## Cutting a release
 
 ```sh
-npm version 0.2.0        # bumps package.json + creates the v0.2.0 tag
+npm version 0.3.0        # bumps package.json + creates the v0.3.0 tag
 git push --follow-tags
 ```
 
-The tag must match `package.json` — the workflow refuses to publish otherwise.
+Creating a **GitHub Release** with a new `vX.Y.Z` tag works identically (the tag creation fires
+the workflow). Either way the tag must match `package.json` — the workflow refuses to publish
+otherwise, so bump the version on main first.
 
 ## One-time npm setup
 
