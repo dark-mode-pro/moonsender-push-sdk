@@ -1,6 +1,6 @@
 {
   "name": "@dark-mode-pro/moonsender-push",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Web push SDK for self-hosted Moonsender servers — one durable token per browser installation, Firebase-style ergonomics, zero runtime dependencies.",
   "keywords": [
     "web-push",
