@@ -1,0 +1,40 @@
+name: release
+
+# Publishes to npm when a version tag is pushed (vX.Y.Z). Uses npm trusted publishing
+# (GitHub OIDC — no token secret) with provenance; see RELEASING.md for the one-time
+# registry-side setup and the manual fallback.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write # OIDC for npm trusted publishing + provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Tag must match package.json version
+        run: |
+          PKG="v$(node -p "require('./package.json').version")"
+          if [ "$PKG" != "${GITHUB_REF_NAME}" ]; then
+            echo "tag ${GITHUB_REF_NAME} != package.json ${PKG}" >&2
+            exit 1
+          fi
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm run check:package
+      - run: npm run check:size
+      - run: npm publish

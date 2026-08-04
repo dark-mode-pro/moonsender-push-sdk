@@ -3,13 +3,15 @@ import { defineConfig } from 'tsup'
 export default defineConfig([
   {
     entry: { index: 'src/index.ts' },
-    format: ['esm', 'iife'],
+    format: ['esm', 'cjs', 'iife'],
     globalName: 'MoonsenderPush',
     dts: true,
     sourcemap: true,
     clean: true,
     outExtension({ format }) {
-      return { js: format === 'iife' ? '.global.js' : '.mjs' }
+      if (format === 'iife') return { js: '.global.js' }
+      if (format === 'cjs') return { js: '.cjs' }
+      return { js: '.mjs' }
     },
   },
   {
