@@ -1,0 +1,47 @@
+{
+  "name": "moonsender-push",
+  "version": "0.1.0",
+  "description": "Web push SDK for self-hosted Moonsender servers — one durable token per browser installation, Firebase-style ergonomics, zero runtime dependencies.",
+  "keywords": [
+    "web-push",
+    "push-notifications",
+    "vapid",
+    "service-worker",
+    "moonsender"
+  ],
+  "license": "MIT",
+  "author": "Moonsender",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dark-mode-pro/moonsender-push-sdk.git"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./sw": "./dist/sw.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.0.0",
+    "happy-dom": "^15.11.7",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

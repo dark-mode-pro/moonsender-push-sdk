@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>moonsender-push playground</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+      label { display: block; margin: 0.75rem 0 0.25rem; font-size: 0.85rem; color: #555; }
+      input { width: 100%; padding: 0.4rem; font: inherit; box-sizing: border-box; }
+      button { margin: 1rem 0.5rem 0 0; padding: 0.5rem 1rem; font: inherit; cursor: pointer; }
+      pre { background: #f4f4f4; padding: 0.75rem; overflow-x: auto; font-size: 0.8rem; white-space: pre-wrap; word-break: break-all; }
+    </style>
+  </head>
+  <body>
+    <h1>moonsender-push playground</h1>
+    <p>
+      Manual test page for the SDK against any Moonsender server. Serve the repo root (so
+      <code>/dist</code> and <code>/moonsender-sw.js</code> resolve) — e.g. <code>npx serve .</code> —
+      and open <code>/playground/</code> via <code>http://localhost</code>.
+    </p>
+
+    <label for="baseUrl">Base URL (your Moonsender push host)</label>
+    <input id="baseUrl" value="http://localhost:18001" />
+    <label for="project">Project slug</label>
+    <input id="project" value="demo-web-app" />
+
+    <div>
+      <button id="get">Get Token</button>
+      <button id="del">Delete Token</button>
+    </div>
+
+    <h3>Token</h3>
+    <pre id="token">—</pre>
+    <h3>Log</h3>
+    <pre id="log"></pre>
+
+    <script src="../dist/index.global.js"></script>
+    <script>
+      const logEl = document.getElementById('log')
+      const tokenEl = document.getElementById('token')
+      const log = (line) => { logEl.textContent += line + '\n' }
+
+      const initFromInputs = () => {
+        MoonsenderPush.init({
+          baseUrl: document.getElementById('baseUrl').value,
+          project: document.getElementById('project').value,
+          // The playground serves the worker from the repo root.
+          serviceWorkerPath: '/moonsender-sw.js',
+        })
+      }
+
+      MoonsenderPush.onMessage((payload) => log('push received in page: ' + JSON.stringify(payload)))
+
+      document.getElementById('get').addEventListener('click', async () => {
+        try {
+          initFromInputs()
+          log('supported: ' + MoonsenderPush.isSupported())
+          const token = await MoonsenderPush.getToken()
+          tokenEl.textContent = token
+          log('getToken ok')
+        } catch (err) {
+          log('getToken failed: ' + (err.code ?? '') + ' ' + err.message)
+        }
+      })
+
+      document.getElementById('del').addEventListener('click', async () => {
+        try {
+          initFromInputs()
+          const removed = await MoonsenderPush.deleteToken()
+          tokenEl.textContent = '—'
+          log('deleteToken removed=' + removed)
+        } catch (err) {
+          log('deleteToken failed: ' + (err.code ?? '') + ' ' + err.message)
+        }
+      })
+    </script>
+  </body>
+</html>
