@@ -23,10 +23,11 @@ the repo):
    the first one manually from a logged-in machine — `prepublishOnly` runs the full gate:
 
    ```sh
-   npm publish
+   npm publish --provenance=false
    ```
 
    then configure the trusted publisher and use tags from there on.
 
-`publishConfig` already pins `access: public` and `provenance: true`, so a manual publish
-behaves identically to CI.
+`publishConfig` pins `access: public` and `provenance: true`. Provenance attestations can only
+be generated inside a supported CI provider (GitHub Actions OIDC) — hence the
+`--provenance=false` override for manual publishes; tag-driven releases keep full provenance.

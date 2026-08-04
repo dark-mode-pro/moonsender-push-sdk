@@ -1,10 +1,10 @@
-# moonsender-push
+# @dark-mode-pro/moonsender-push
 
 Web push SDK for self-hosted [Moonsender](https://github.com/dark-mode-pro) servers. One durable
 token per browser installation, Firebase-style ergonomics, zero runtime dependencies.
 
 ```js
-import { init, getToken, onMessage } from 'moonsender-push'
+import { init, getToken, onMessage } from '@dark-mode-pro/moonsender-push'
 
 // Copy this object from your Moonsender control panel (Channels → Push → your project).
 init({
@@ -30,13 +30,13 @@ happens only after the user cleared site data).
 ## Install
 
 ```sh
-npm install moonsender-push
+npm install @dark-mode-pro/moonsender-push
 ```
 
 Or from a CDN, no build step:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/moonsender-push@0/dist/index.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@dark-mode-pro/moonsender-push@0/dist/index.global.js"></script>
 <script>
   MoonsenderPush.init({ baseUrl: 'https://links.example.com', project: 'website' })
 </script>
@@ -48,7 +48,7 @@ Browsers require the push service worker to be served from **your** origin. Crea
 your web root, `/moonsender-sw.js`, containing a single line:
 
 ```js
-importScripts('https://cdn.jsdelivr.net/npm/moonsender-push@0/dist/sw.js')
+importScripts('https://cdn.jsdelivr.net/npm/@dark-mode-pro/moonsender-push@0/dist/sw.js')
 ```
 
 (Or copy `dist/sw.js` there verbatim — for example when your site must not load third-party
