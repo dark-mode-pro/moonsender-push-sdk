@@ -1,11 +1,14 @@
-name: release
+name: publish
 
-# The publish workflow: full verification gate, then npm publish via trusted publishing (OIDC —
-# this exact filename is bound as the package's trusted publisher on npmjs.com) with provenance.
+# Full verification gate, then npm publish via trusted publishing (OIDC) with provenance.
+#
+# This FILENAME is the npm trusted-publisher binding: npm validates the OIDC token's workflow_ref
+# claim against it, so renaming this file breaks publishing — with a 404 on PUT, since npm masks
+# the permission failure — until the binding on npmjs.com is updated to match.
 #
 # Normally triggered by release-please dispatching it at the tag it just cut (see
 # release-please.yml; bot-created tags cannot fire the tag trigger themselves). The tag trigger
-# remains as the manual emergency fallback. Either way the tag must match package.json.
+# remains as the manual emergency fallback. Either way the ref must match package.json.
 
 on:
   push:

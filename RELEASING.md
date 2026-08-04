@@ -8,7 +8,7 @@ from conventional commit messages (`fix:` → patch, `feat:` → minor, `feat!:`
 major).
 
 **To release: merge that PR.** Nothing else. The merge bumps `package.json` + `CHANGELOG.md`,
-creates the matching `vX.Y.Z` tag and GitHub Release, and dispatches the `release` workflow at
+creates the matching `vX.Y.Z` tag and GitHub Release, and dispatches the `publish` workflow at
 that tag — which re-runs the full verification gate (typecheck → tests → build → packaging +
 size checks) and publishes to npm via **trusted publishing** (OIDC, no tokens) with
 **provenance**.
@@ -32,7 +32,7 @@ The workflow refuses a tag that does not match `package.json`.
 ## One-time npm setup (done)
 
 The publish workflow authenticates with **trusted publishing** — configured on npmjs.com under
-the package's **Settings → Trusted publisher** (this repository, workflow `release.yml`). If the
+the package's **Settings → Trusted publisher** (this repository, workflow `publish.yml`). If the
 trusted-publisher binding ever needs a from-scratch manual publish, use
 `npm publish --provenance=false` from a logged-in machine (provenance attestations mint only
 inside CI); `publishConfig` pins public access either way.
