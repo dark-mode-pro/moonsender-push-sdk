@@ -52,9 +52,36 @@ importScripts('https://cdn.jsdelivr.net/npm/@dark-mode-pro/moonsender-push@0/dis
 ```
 
 (Or copy `dist/sw.js` there verbatim — for example when your site must not load third-party
-scripts.) The worker shows the notification, reports delivery and clicks back to your server,
-forwards the payload to open pages, and silently re-registers when the browser rotates the
-subscription. If the file must live elsewhere, pass `serviceWorkerPath` to `init`.
+scripts.) If the file must live elsewhere, pass `serviceWorkerPath` to `init`.
+
+The worker:
+
+- shows every notification (required — subscriptions use `userVisibleOnly`),
+- opens **your** destination on click, directly,
+- reports delivery and clicks as **separate beacons**, so a blocked or unreachable tracking host
+  costs a metric and never the user's click,
+- forwards the payload to open pages (`onMessage`),
+- silently re-registers when the browser rotates the subscription.
+
+## The payload
+
+```json
+{
+  "title": "Your order shipped",
+  "body": "Track it from your account.",
+  "icon": "https://example.com/icon.png",
+  "data": {
+    "url": "https://example.com/orders/42",
+    "track_click_url": "https://links.example.com/link/pc/<token>",
+    "track_delivery_url": "https://links.example.com/link/pd/<token>",
+    "order_id": "42"
+  }
+}
+```
+
+`data.url` is your real destination. The two `track_*` beacons are fired by the worker — you
+never call them yourself. Any other keys are whatever the send attached (the `data` object on the
+send API), delivered verbatim, so `onMessage` and your own handling can read them.
 
 ## API
 
