@@ -1,12 +1,16 @@
 name: release
 
-# Publishes to npm when a version tag is pushed (vX.Y.Z). Uses npm trusted publishing
-# (GitHub OIDC — no token secret) with provenance; see RELEASING.md for the one-time
-# registry-side setup and the manual fallback.
+# The publish workflow: full verification gate, then npm publish via trusted publishing (OIDC —
+# this exact filename is bound as the package's trusted publisher on npmjs.com) with provenance.
+#
+# Normally triggered by release-please dispatching it at the tag it just cut (see
+# release-please.yml; bot-created tags cannot fire the tag trigger themselves). The tag trigger
+# remains as the manual emergency fallback. Either way the tag must match package.json.
 
 on:
   push:
     tags: ['v*']
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -26,11 +30,11 @@ jobs:
       # Trusted publishing (OIDC) requires npm >= 11.5.1; don't rely on the bundled version.
       - run: npm install -g npm@latest && npm --version
 
-      - name: Tag must match package.json version
+      - name: Ref must be a tag matching package.json version
         run: |
           PKG="v$(node -p "require('./package.json').version")"
           if [ "$PKG" != "${GITHUB_REF_NAME}" ]; then
-            echo "tag ${GITHUB_REF_NAME} != package.json ${PKG}" >&2
+            echo "ref ${GITHUB_REF_NAME} != package.json ${PKG}" >&2
             exit 1
           fi
 

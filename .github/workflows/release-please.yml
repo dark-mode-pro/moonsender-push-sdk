@@ -1,0 +1,32 @@
+name: release-please
+
+# The normal release path: release-please keeps a "Release PR" open that bumps package.json and
+# the changelog from conventional commit messages. Merging that PR creates the matching tag +
+# GitHub Release, then this workflow dispatches the publish workflow at that tag — a human never
+# types a version or creates a tag, so tag and package.json can never disagree.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write # dispatch the publish workflow at the new tag
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: rp
+        with:
+          release-type: node
+
+      # Tags created with the workflow token cannot fire the tag trigger (GitHub's recursion
+      # guard) — but workflow_dispatch is exempt from it, so trigger the publish explicitly.
+      - name: Dispatch publish at the new tag
+        if: ${{ steps.rp.outputs.release_created == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run release.yml --repo ${{ github.repository }} --ref '${{ steps.rp.outputs.tag_name }}'

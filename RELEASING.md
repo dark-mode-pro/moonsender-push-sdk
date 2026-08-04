@@ -1,35 +1,38 @@
 # Releasing
 
-Releases are tag-driven: a `vX.Y.Z` tag runs the `release` workflow, which re-verifies
-(typecheck → tests → build → packaging + size checks) and publishes to npm with **provenance**.
+## The normal path: merge the Release PR
 
-## Cutting a release
+[release-please](https://github.com/googleapis/release-please) keeps a **Release PR** open on
+this repo. It accumulates every change on `main`, deriving the next version and the changelog
+from conventional commit messages (`fix:` → patch, `feat:` → minor, `feat!:`/`BREAKING CHANGE` →
+major).
+
+**To release: merge that PR.** Nothing else. The merge bumps `package.json` + `CHANGELOG.md`,
+creates the matching `vX.Y.Z` tag and GitHub Release, and dispatches the `release` workflow at
+that tag — which re-runs the full verification gate (typecheck → tests → build → packaging +
+size checks) and publishes to npm via **trusted publishing** (OIDC, no tokens) with
+**provenance**.
+
+A human never types a version and never creates a tag, so the tag and `package.json` cannot
+disagree — the failure mode this design exists to prevent.
+
+Do **not** create releases or `v*` tags through the GitHub UI; the Release PR is the release.
+
+## Emergency fallback: manual tag
+
+If the bot path is ever unavailable, a hand-pushed tag publishes through the same gate:
 
 ```sh
-npm version 0.3.0        # bumps package.json + creates the v0.3.0 tag
+npm version 0.9.1        # bumps package.json + creates the matching tag
 git push --follow-tags
 ```
 
-Creating a **GitHub Release** with a new `vX.Y.Z` tag works identically (the tag creation fires
-the workflow). Either way the tag must match `package.json` — the workflow refuses to publish
-otherwise, so bump the version on main first.
+The workflow refuses a tag that does not match `package.json`.
 
-## One-time npm setup
+## One-time npm setup (done)
 
-The workflow authenticates with **trusted publishing** (GitHub OIDC — no npm token stored in
-the repo):
-
-1. On npmjs.com, under the package's **Settings → Trusted publisher**, add:
-   repository `dark-mode-pro/moonsender-push-sdk`, workflow `release.yml`.
-2. If the registry does not offer trusted-publisher setup before a package's first publish, do
-   the first one manually from a logged-in machine — `prepublishOnly` runs the full gate:
-
-   ```sh
-   npm publish --provenance=false
-   ```
-
-   then configure the trusted publisher and use tags from there on.
-
-`publishConfig` pins `access: public` and `provenance: true`. Provenance attestations can only
-be generated inside a supported CI provider (GitHub Actions OIDC) — hence the
-`--provenance=false` override for manual publishes; tag-driven releases keep full provenance.
+The publish workflow authenticates with **trusted publishing** — configured on npmjs.com under
+the package's **Settings → Trusted publisher** (this repository, workflow `release.yml`). If the
+trusted-publisher binding ever needs a from-scratch manual publish, use
+`npm publish --provenance=false` from a logged-in machine (provenance attestations mint only
+inside CI); `publishConfig` pins public access either way.
