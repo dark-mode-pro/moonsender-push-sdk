@@ -19,6 +19,25 @@ describe('parseEnvelope', () => {
     })
   })
 
+  it('keeps the tracking beacons and caller data keys', () => {
+    const payload = parseEnvelope({
+      title: 'Hi',
+      body: 'There',
+      data: {
+        url: 'https://shop.example/orders/42',
+        track_click_url: 'https://links.example/link/pc/x',
+        track_delivery_url: 'https://links.example/link/pd/x',
+        order_id: '42',
+      },
+    })
+    expect(payload.data).toEqual({
+      url: 'https://shop.example/orders/42',
+      track_click_url: 'https://links.example/link/pc/x',
+      track_delivery_url: 'https://links.example/link/pd/x',
+      order_id: '42',
+    })
+  })
+
   it('defaults missing title and body, drops non-string fields', () => {
     const payload = parseEnvelope({ icon: 42, data: { url: 1 } })
     expect(payload.title).toBe('Notification')

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { KEY_CONFIG, KEY_INSTALLATION, idbDel, idbSet } from '../src/idb'
-import { clickTargetURL, handlePush, handleSubscriptionChange } from '../src/sw-handlers'
+import { handleNotificationClick, handlePush, handleSubscriptionChange } from '../src/sw-handlers'
 
 afterEach(async () => {
   vi.unstubAllGlobals()
@@ -25,7 +25,10 @@ describe('handlePush', () => {
           title: 'Order shipped',
           body: 'Track it.',
           icon: 'https://s.example/i.png',
-          data: { url: 'https://links.example/pc/x', report_url: 'https://links.example/pd/x' },
+          data: {
+            url: 'https://shop.example/orders/42',
+            track_delivery_url: 'https://links.example/pd/x',
+          },
         }),
         text: () => '',
       },
@@ -37,7 +40,7 @@ describe('handlePush', () => {
       expect.objectContaining({
         body: 'Track it.',
         icon: 'https://s.example/i.png',
-        data: expect.objectContaining({ url: 'https://links.example/pc/x' }),
+        data: expect.objectContaining({ url: 'https://shop.example/orders/42' }),
       }),
     )
     expect(ctx.beacon).toHaveBeenCalledWith('https://links.example/pd/x')
@@ -67,15 +70,6 @@ describe('handlePush', () => {
     const ctx = pushContext()
     await handlePush(null, ctx)
     expect(ctx.show).toHaveBeenCalledWith('Notification', expect.objectContaining({ body: '' }))
-  })
-})
-
-describe('clickTargetURL', () => {
-  it('uses data.url when present, falls back to /', () => {
-    expect(clickTargetURL({ url: 'https://links.example/pc/x' })).toBe('https://links.example/pc/x')
-    expect(clickTargetURL({})).toBe('/')
-    expect(clickTargetURL(undefined)).toBe('/')
-    expect(clickTargetURL({ url: 42 })).toBe('/')
   })
 })
 
@@ -124,5 +118,40 @@ describe('handleSubscriptionChange', () => {
 
     await handleSubscriptionChange(fakeRegistration())
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('handleNotificationClick', () => {
+  function clickContext() {
+    return { beacon: vi.fn(), open: vi.fn().mockResolvedValue(undefined) }
+  }
+
+  // The user's destination is opened directly; the click beacon is fired beside it, so an
+  // unreachable tracking host can never cost the click.
+  it('opens the real url and fires the click beacon', async () => {
+    const ctx = clickContext()
+    await handleNotificationClick(
+      { url: 'https://shop.example/orders/42', track_click_url: 'https://links.example/pc/x' },
+      ctx,
+    )
+
+    expect(ctx.open).toHaveBeenCalledWith('https://shop.example/orders/42')
+    expect(ctx.beacon).toHaveBeenCalledWith('https://links.example/pc/x')
+  })
+
+  it('still opens the destination when no beacon was sent', async () => {
+    const ctx = clickContext()
+    await handleNotificationClick({ url: 'https://shop.example/orders/42' }, ctx)
+
+    expect(ctx.open).toHaveBeenCalledWith('https://shop.example/orders/42')
+    expect(ctx.beacon).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the site root and tolerates absent data', async () => {
+    const ctx = clickContext()
+    await handleNotificationClick(undefined, ctx)
+
+    expect(ctx.open).toHaveBeenCalledWith('/')
+    expect(ctx.beacon).not.toHaveBeenCalled()
   })
 })

@@ -1,5 +1,5 @@
 import { fetchVapidKey, registerSubscription } from './api'
-import { fallbackEnvelope, parseEnvelope, type PushPayload } from './envelope'
+import { fallbackEnvelope, parseEnvelope, type PushPayload, type PushPayloadData } from './envelope'
 import { KEY_CONFIG, KEY_INSTALLATION, idbGet } from './idb'
 import { urlBase64ToUint8Array } from './keys'
 
@@ -39,17 +39,37 @@ export async function handlePush(data: PushEventDataLike | null, ctx: PushContex
   if (payload.image !== undefined) options.image = payload.image
 
   await ctx.show(payload.title, options)
-  if (payload.data?.report_url !== undefined) {
-    ctx.beacon(payload.data.report_url)
+  // report_url is the pre-0.4 name for the same beacon — honored so an older server still
+  // records delivery against a current SDK.
+  const deliveryBeacon = payload.data?.track_delivery_url ?? payload.data?.report_url
+  if (deliveryBeacon !== undefined) {
+    ctx.beacon(deliveryBeacon)
   }
   await ctx.post({ type: 'moonsender-push', payload })
 }
 
+export interface ClickContext {
+  beacon(url: string): void
+  open(url: string): Promise<void>
+}
+
 /**
- * The click destination. data.url is the server's tracking redirect — open it verbatim (the
- * click is recorded, then the browser is redirected to the real target); fall back to the site
- * root.
+ * The click pipeline: open the user's real destination, and report the click as a separate
+ * beacon. The two are independent on purpose — if the tracking host is blocked or unreachable,
+ * the user still lands on the page.
  */
+export async function handleNotificationClick(
+  data: PushPayloadData | undefined,
+  ctx: ClickContext,
+): Promise<void> {
+  if (data?.track_click_url !== undefined && data.track_click_url !== '') {
+    ctx.beacon(data.track_click_url)
+  }
+
+  await ctx.open(clickTargetURL(data))
+}
+
+/** The click destination: the caller's own URL, falling back to the site root. */
 export function clickTargetURL(data: unknown): string {
   if (typeof data === 'object' && data !== null) {
     const url = (data as Record<string, unknown>).url

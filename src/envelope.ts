@@ -1,6 +1,19 @@
+/**
+ * The notification's data object: your destination, the two tracking beacons, and whatever keys
+ * the send attached. Navigation and tracking are independent — the worker opens `url` directly
+ * and fetches the beacons separately, so a tracking outage never costs the click.
+ */
 export interface PushPayloadData {
+  /** Your real destination, delivered exactly as sent. */
   url?: string
+  /** Beacon: fetch to record a click. */
+  track_click_url?: string
+  /** Beacon: fetch to record delivery. */
+  track_delivery_url?: string
+  /** @deprecated superseded by track_delivery_url; still honored on older servers. */
   report_url?: string
+  /** Caller-supplied keys, delivered verbatim. */
+  [key: string]: string | undefined
 }
 
 /** The notification envelope a Moonsender server delivers, verbatim. */
@@ -37,12 +50,13 @@ export function parseEnvelope(raw: unknown): PushPayload {
   if (image !== undefined) payload.image = image
 
   if (typeof obj.data === 'object' && obj.data !== null) {
-    const rawData = obj.data as Record<string, unknown>
+    // Every string key is kept: the platform's own keys plus whatever the sender attached, so
+    // caller data reaches onMessage and the click handler untouched.
     const data: PushPayloadData = {}
-    const url = str(rawData.url)
-    if (url !== undefined) data.url = url
-    const reportURL = str(rawData.report_url)
-    if (reportURL !== undefined) data.report_url = reportURL
+    for (const [key, value] of Object.entries(obj.data as Record<string, unknown>)) {
+      const asString = str(value)
+      if (asString !== undefined) data[key] = asString
+    }
     payload.data = data
   }
 
