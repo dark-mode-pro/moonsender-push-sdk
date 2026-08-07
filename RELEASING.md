@@ -22,7 +22,7 @@ Do **not** create releases or `v*` tags through the GitHub UI; the Release PR is
 
 The documented CDN URLs are pinned to an exact version and release-please does not rewrite
 them. Once the release is on npm, update `README.md` and `src/sw.ts` here, plus the integration
-guide, demo and example stubs in `moonsender-esp`.
+guide, demo and example stubs in the platform repo.
 
 ## Emergency fallback: manual tag
 

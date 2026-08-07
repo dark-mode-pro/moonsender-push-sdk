@@ -26,6 +26,24 @@ describe('fetchVapidKey', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(404, {})))
     await expect(fetchVapidKey(BASE, 'nope')).rejects.toMatchObject({ code: 'request-failed' })
   })
+
+  // status is what separates "the project slug is wrong" (404) from "the network is down" —
+  // request-failed alone cannot express the difference.
+  it('carries the HTTP status on a non-OK response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse(404, {})))
+    await expect(fetchVapidKey(BASE, 'nope')).rejects.toMatchObject({ status: 404 })
+  })
+
+  it('leaves status undefined when the request never reached the server', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('offline')))
+    try {
+      await fetchVapidKey(BASE, 'website')
+      expect.unreachable('must throw')
+    } catch (err) {
+      expect(err).toBeInstanceOf(MoonsenderPushError)
+      expect((err as MoonsenderPushError).status).toBeUndefined()
+    }
+  })
 })
 
 describe('registerSubscription', () => {

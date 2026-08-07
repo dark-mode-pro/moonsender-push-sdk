@@ -41,8 +41,14 @@ export async function getToken(options?: GetTokenOptions): Promise<string> {
   if (permission === 'default') {
     permission = await Notification.requestPermission()
   }
+  if (permission === 'denied') {
+    // Terminal: only the user can undo this, from browser settings.
+    throw new MoonsenderPushError('permission-blocked', 'notification permission is blocked')
+  }
   if (permission !== 'granted') {
-    throw new MoonsenderPushError('permission-blocked', 'notification permission was not granted')
+    // Still 'default' — the prompt was dismissed rather than answered, so asking again on a
+    // later gesture is legitimate. Distinct from blocked, because the UI response differs.
+    throw new MoonsenderPushError('permission-dismissed', 'notification permission was dismissed')
   }
 
   const registration =
@@ -88,16 +94,27 @@ export async function getToken(options?: GetTokenOptions): Promise<string> {
   return token
 }
 
+export interface DeleteTokenOptions {
+  /** The registration getToken used, when the site manages its own service worker. */
+  serviceWorkerRegistration?: ServiceWorkerRegistration
+}
+
 /**
  * Unsubscribes the browser and removes the server registration. The installation id is kept on
  * purpose — it is this browser profile's durable identity, and a later getToken() reuses it.
+ *
+ * Pass the same registration you passed to getToken: resolving one by path would find a
+ * different worker (or none), removing the server registration while leaving the browser
+ * subscribed.
  */
-export async function deleteToken(): Promise<boolean> {
+export async function deleteToken(options?: DeleteTokenOptions): Promise<boolean> {
   ensureSupported()
   const cfg = requireConfig()
   let removed = false
 
-  const registration = await navigator.serviceWorker.getRegistration(cfg.serviceWorkerPath)
+  const registration =
+    options?.serviceWorkerRegistration ??
+    (await navigator.serviceWorker.getRegistration(cfg.serviceWorkerPath))
   const subscription = (await registration?.pushManager.getSubscription()) ?? null
   if (subscription !== null) {
     await subscription.unsubscribe()

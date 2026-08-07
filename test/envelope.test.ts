@@ -8,14 +8,14 @@ describe('parseEnvelope', () => {
       body: 'Track it from your account.',
       icon: 'https://site.example/icon.png',
       image: 'https://site.example/hero.png',
-      data: { url: 'https://links.example/link/pc/x', report_url: 'https://links.example/link/pd/x' },
+      data: { url: 'https://links.example/link/pc/x', track_delivery_url: 'https://links.example/link/pd/x' },
     })
     expect(payload).toEqual({
       title: 'Order shipped',
       body: 'Track it from your account.',
       icon: 'https://site.example/icon.png',
       image: 'https://site.example/hero.png',
-      data: { url: 'https://links.example/link/pc/x', report_url: 'https://links.example/link/pd/x' },
+      data: { url: 'https://links.example/link/pc/x', track_delivery_url: 'https://links.example/link/pd/x' },
     })
   })
 

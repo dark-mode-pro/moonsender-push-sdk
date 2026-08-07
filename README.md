@@ -93,7 +93,7 @@ send API), delivered verbatim, so `onMessage` and your own handling can read the
 | `init(config)` | Stores `{ baseUrl, project, serviceWorkerPath? }` for all other calls. Call once. |
 | `isSupported()` | `true` when service workers, the Push API, and Notifications are available. |
 | `getToken(options?)` | Requests permission, registers the worker, subscribes, registers with the server, returns the token. `options.serviceWorkerRegistration` reuses your own registration. |
-| `deleteToken()` | Unsubscribes the browser and removes the server registration. Returns whether anything was removed. |
+| `deleteToken(options?)` | Unsubscribes the browser and removes the server registration. Returns whether anything was removed. Pass the same `options.serviceWorkerRegistration` you gave `getToken`. |
 | `onMessage(cb)` | Calls `cb(payload)` for pushes received while a page is open. Returns an unsubscribe function. |
 
 All failures throw `MoonsenderPushError` with a `code` to branch on:
@@ -101,10 +101,26 @@ All failures throw `MoonsenderPushError` with a `code` to branch on:
 | Code | Meaning |
 | --- | --- |
 | `not-initialized` | `init` was not called |
+| `invalid-config` | `init` was called with an empty `baseUrl` or `project` |
 | `unsupported` | The browser cannot do web push |
-| `permission-blocked` | The user denied (or has blocked) notifications |
+| `permission-blocked` | The user blocked notifications — only they can undo it, from browser settings |
+| `permission-dismissed` | The user dismissed the prompt without answering; asking again later is fine |
 | `subscribe-failed` | The browser refused the push subscription |
 | `request-failed` | A server call failed (network or non-OK status) |
+
+On `request-failed` the error also carries `status`, the HTTP status of the failing response —
+`404` means the project slug is unknown (or is a Firebase project, which has no public subscribe
+endpoint). It is `undefined` when the request never reached the server, which is the offline
+case:
+
+```js
+try {
+  await getToken()
+} catch (err) {
+  if (err.code === 'permission-dismissed') return // ask again on a later click
+  if (err.code === 'request-failed' && err.status === 404) throw new Error('check your project slug')
+}
+```
 
 ## Server endpoints used
 
@@ -125,6 +141,14 @@ with no extra configuration.
 Chrome, Edge, Firefox, and Safari 16.4+ (macOS, and iOS when the site is installed to the Home
 Screen). `isSupported()` is the runtime check. Web push requires a secure context: `https://` or
 `http://localhost`.
+
+## Support
+
+Fixes land on the latest minor; upgrade to receive them.
+
+Each major states the server contract it needs. **1.x requires a Moonsender server that serves
+the `/v1/push` endpoints above**; 0.x used the unversioned paths. If you are unsure, ask your
+operator whether the server answers `GET /v1/push/{project}/vapid-public-key`.
 
 ## Development
 
