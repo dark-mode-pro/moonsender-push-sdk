@@ -19,7 +19,7 @@ describe('fetchVapidKey', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     expect(await fetchVapidKey(BASE, 'website')).toBe('PUBKEY')
-    expect(fetchMock).toHaveBeenCalledWith(`${BASE}/push/website/vapid-public-key`, undefined)
+    expect(fetchMock).toHaveBeenCalledWith(`${BASE}/v1/push/website/vapid-public-key`, undefined)
   })
 
   it('maps a non-OK status to request-failed', async () => {
@@ -41,7 +41,7 @@ describe('registerSubscription', () => {
 
     expect(token).toBe('inst:cred')
     const [url, initArg] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe(`${BASE}/push/website/subscribe`)
+    expect(url).toBe(`${BASE}/v1/push/website/subscribe`)
     expect(initArg.method).toBe('POST')
     expect(new Headers(initArg.headers).get('content-type')).toContain('application/json')
     expect(JSON.parse(initArg.body as string)).toEqual({

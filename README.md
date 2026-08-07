@@ -109,9 +109,9 @@ Everything goes to the `baseUrl` you configured — your own Moonsender server, 
 
 | Endpoint | Purpose |
 | --- | --- |
-| `GET /push/{project}/vapid-public-key` | fetched at runtime, so server key rotation needs no site deploy |
-| `POST /push/{project}/subscribe` | registers `{ installation_id, endpoint, keys }`, returns `{ token }` |
-| `POST /push/{project}/unsubscribe` | removes a registration by token |
+| `GET /v1/push/{project}/vapid-public-key` | fetched at runtime, so server key rotation needs no site deploy |
+| `POST /v1/push/{project}/subscribe` | registers `{ installation_id, endpoint, keys }`, returns `{ token }` |
+| `POST /v1/push/{project}/unsubscribe` | removes a registration by token |
 
 These endpoints answer CORS directly. A project may be locked to its site's origin on the
 server; localhost is always allowed, so local development works against a production project
