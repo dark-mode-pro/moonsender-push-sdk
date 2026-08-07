@@ -4,7 +4,7 @@
 // service workers cannot be registered cross-origin — either by vendoring the file at
 // /moonsender-sw.js, or with a one-line stub:
 //
-//   importScripts('https://cdn.jsdelivr.net/npm/@dark-mode-pro/moonsender-push@1.0.0/dist/sw.js')
+//   importScripts('https://cdn.jsdelivr.net/npm/@dark-mode-pro/moonsender-push@1.1.0/dist/sw.js')
 
 import { handleNotificationClick, handlePush, handleSubscriptionChange } from './sw-handlers'
 
