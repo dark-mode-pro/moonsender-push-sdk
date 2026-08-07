@@ -36,7 +36,7 @@ npm install @dark-mode-pro/moonsender-push
 Or from a CDN, no build step:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@dark-mode-pro/moonsender-push@1.0.0/dist/index.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@dark-mode-pro/moonsender-push@1.1.0/dist/index.global.js"></script>
 <script>
   MoonsenderPush.init({ baseUrl: 'https://links.example.com', project: 'website' })
 </script>
@@ -48,7 +48,7 @@ Browsers require the push service worker to be served from **your** origin. Crea
 your web root, `/moonsender-sw.js`, containing a single line:
 
 ```js
-importScripts('https://cdn.jsdelivr.net/npm/@dark-mode-pro/moonsender-push@1.0.0/dist/sw.js')
+importScripts('https://cdn.jsdelivr.net/npm/@dark-mode-pro/moonsender-push@1.1.0/dist/sw.js')
 ```
 
 Pin an exact version: a browser reinstalls the worker only when this stub's bytes change, so a
