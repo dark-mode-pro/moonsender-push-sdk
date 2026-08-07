@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/dark-mode-pro/moonsender-push-sdk/compare/v1.0.0...v1.1.0) (2026-08-07)
+
+
+### Features
+
+* review the public API 1.0 froze, and state the support policy ([#10](https://github.com/dark-mode-pro/moonsender-push-sdk/issues/10)) ([c12dfa5](https://github.com/dark-mode-pro/moonsender-push-sdk/commit/c12dfa57bac16b0cda9ed7f91f422b2e29b28cde))
+
 ## [1.0.0](https://github.com/dark-mode-pro/moonsender-push-sdk/compare/v0.4.0...v1.0.0) (2026-08-07)
 
 
