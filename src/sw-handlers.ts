@@ -1,6 +1,6 @@
 import { fetchVapidKey, registerSubscription } from './api'
 import { fallbackEnvelope, parseEnvelope, type PushPayload, type PushPayloadData } from './envelope'
-import { KEY_CONFIG, KEY_INSTALLATION, idbGet } from './idb'
+import { KEY_CONFIG, KEY_INSTALLATION, KEY_TOKEN, idbGet, idbSet } from './idb'
 import { urlBase64ToUint8Array } from './keys'
 
 export interface PushEventDataLike {
@@ -39,9 +39,7 @@ export async function handlePush(data: PushEventDataLike | null, ctx: PushContex
   if (payload.image !== undefined) options.image = payload.image
 
   await ctx.show(payload.title, options)
-  // report_url is the pre-0.4 name for the same beacon — honored so an older server still
-  // records delivery against a current SDK.
-  const deliveryBeacon = payload.data?.track_delivery_url ?? payload.data?.report_url
+  const deliveryBeacon = payload.data?.track_delivery_url
   if (deliveryBeacon !== undefined) {
     ctx.beacon(deliveryBeacon)
   }
@@ -104,9 +102,14 @@ export async function handleSubscriptionChange(registration: ServiceWorkerRegist
   const json = subscription.toJSON()
   if (!json.endpoint || !json.keys?.p256dh || !json.keys.auth) return
 
-  await registerSubscription(cfg.baseUrl, cfg.project, {
+  const token = await registerSubscription(cfg.baseUrl, cfg.project, {
     installation_id: installationID,
     endpoint: json.endpoint,
     keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
   })
+
+  // Usually the same token as before — same installation, so the server preserves it. But if
+  // the registration was pruned first (dead gateway at send time), this mints a NEW one, and
+  // dropping it would leave a stale token in IndexedDB until the next page visit.
+  await idbSet(KEY_TOKEN, token)
 }

@@ -146,9 +146,9 @@ Screen). `isSupported()` is the runtime check. Web push requires a secure contex
 
 Fixes land on the latest minor; upgrade to receive them.
 
-Each major states the Moonsender platform it needs. **1.x requires a platform serving
-`/v1/push` — [moonsender-esp](https://github.com/dark-mode-pro) 1.5.0 or newer.** Older
-platforms serve the unversioned paths that 0.x used.
+Each major states the server contract it needs. **1.x requires a Moonsender server that serves
+the `/v1/push` endpoints above**; 0.x used the unversioned paths. If you are unsure, ask your
+operator whether the server answers `GET /v1/push/{project}/vapid-public-key`.
 
 ## Development
 

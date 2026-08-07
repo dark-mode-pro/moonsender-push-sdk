@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { KEY_CONFIG, KEY_INSTALLATION, idbDel, idbSet } from '../src/idb'
+import { KEY_CONFIG, KEY_INSTALLATION, KEY_TOKEN, idbDel, idbGet, idbSet } from '../src/idb'
 import { handleNotificationClick, handlePush, handleSubscriptionChange } from '../src/sw-handlers'
 
 afterEach(async () => {
   vi.unstubAllGlobals()
   await idbDel(KEY_CONFIG)
   await idbDel(KEY_INSTALLATION)
+  await idbDel(KEY_TOKEN)
 })
 
 function pushContext() {
@@ -48,6 +49,27 @@ describe('handlePush', () => {
       type: 'moonsender-push',
       payload: expect.objectContaining({ title: 'Order shipped' }),
     })
+  })
+
+  // report_url was the pre-0.4 beacon name. SDK 1.x requires a platform serving /v1/push, and
+  // no such platform emits it — so it is no longer honoured, and a payload carrying only
+  // report_url reports nothing rather than beaconing to a key we no longer define.
+  it('does not fire a delivery beacon for the retired report_url key', async () => {
+    const ctx = pushContext()
+    await handlePush(
+      {
+        json: () => ({
+          title: 'Old server',
+          body: 'Legacy payload.',
+          data: { url: 'https://shop.example/x', report_url: 'https://links.example/pd/legacy' },
+        }),
+        text: () => '',
+      },
+      ctx,
+    )
+
+    expect(ctx.show).toHaveBeenCalled()
+    expect(ctx.beacon).not.toHaveBeenCalled()
   })
 
   it('falls back to text for a non-JSON payload and still shows a notification', async () => {
@@ -110,6 +132,10 @@ describe('handleSubscriptionChange', () => {
     await handleSubscriptionChange(fakeRegistration())
 
     expect(fetchMock.mock.calls.some(([url]) => (url as string).endsWith('/subscribe'))).toBe(true)
+    // The returned token must be stored (#166). If the server pruned the registration first,
+    // re-registering mints a NEW token; dropping it leaves a stale one in IndexedDB until some
+    // later page visit happens to heal it.
+    expect(await idbGet(KEY_TOKEN)).toBe('stored-install-01:cred')
   })
 
   it('does nothing when the SDK never stored a config', async () => {
