@@ -15,7 +15,7 @@ async function call(url: string, init?: RequestInit): Promise<Response> {
 }
 
 export async function fetchVapidKey(baseUrl: string, project: string): Promise<string> {
-  const resp = await call(`${baseUrl}/push/${project}/vapid-public-key`, undefined)
+  const resp = await call(`${baseUrl}/v1/push/${project}/vapid-public-key`, undefined)
   if (!resp.ok) {
     throw new MoonsenderPushError('request-failed', `vapid key fetch failed: HTTP ${resp.status}`)
   }
@@ -32,7 +32,7 @@ export async function registerSubscription(
   project: string,
   body: SubscribeRequest,
 ): Promise<string> {
-  const resp = await call(`${baseUrl}/push/${project}/subscribe`, {
+  const resp = await call(`${baseUrl}/v1/push/${project}/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -54,7 +54,7 @@ export async function removeSubscription(
   project: string,
   token: string,
 ): Promise<void> {
-  const resp = await call(`${baseUrl}/push/${project}/unsubscribe`, {
+  const resp = await call(`${baseUrl}/v1/push/${project}/unsubscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ token }),
