@@ -10,8 +10,6 @@ export interface PushPayloadData {
   track_click_url?: string
   /** Beacon: fetch to record delivery. */
   track_delivery_url?: string
-  /** @deprecated superseded by track_delivery_url; still honored on older servers. */
-  report_url?: string
   /** Caller-supplied keys, delivered verbatim. */
   [key: string]: string | undefined
 }

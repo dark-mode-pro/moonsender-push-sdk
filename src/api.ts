@@ -17,11 +17,15 @@ async function call(url: string, init?: RequestInit): Promise<Response> {
 export async function fetchVapidKey(baseUrl: string, project: string): Promise<string> {
   const resp = await call(`${baseUrl}/v1/push/${project}/vapid-public-key`, undefined)
   if (!resp.ok) {
-    throw new MoonsenderPushError('request-failed', `vapid key fetch failed: HTTP ${resp.status}`)
+    throw new MoonsenderPushError('request-failed', `vapid key fetch failed: HTTP ${resp.status}`, {
+      status: resp.status,
+    })
   }
   const body = (await resp.json()) as { public_key?: string }
   if (typeof body.public_key !== 'string' || body.public_key === '') {
-    throw new MoonsenderPushError('request-failed', 'vapid key response is missing public_key')
+    throw new MoonsenderPushError('request-failed', 'vapid key response is missing public_key', {
+      status: resp.status,
+    })
   }
 
   return body.public_key
@@ -38,11 +42,15 @@ export async function registerSubscription(
     body: JSON.stringify(body),
   })
   if (!resp.ok) {
-    throw new MoonsenderPushError('request-failed', `subscribe failed: HTTP ${resp.status}`)
+    throw new MoonsenderPushError('request-failed', `subscribe failed: HTTP ${resp.status}`, {
+      status: resp.status,
+    })
   }
   const out = (await resp.json()) as { token?: string }
   if (typeof out.token !== 'string' || out.token === '') {
-    throw new MoonsenderPushError('request-failed', 'subscribe response is missing token')
+    throw new MoonsenderPushError('request-failed', 'subscribe response is missing token', {
+      status: resp.status,
+    })
   }
 
   return out.token
@@ -60,6 +68,8 @@ export async function removeSubscription(
     body: JSON.stringify({ token }),
   })
   if (!resp.ok && resp.status !== 404) {
-    throw new MoonsenderPushError('request-failed', `unsubscribe failed: HTTP ${resp.status}`)
+    throw new MoonsenderPushError('request-failed', `unsubscribe failed: HTTP ${resp.status}`, {
+      status: resp.status,
+    })
   }
 }

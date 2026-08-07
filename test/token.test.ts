@@ -150,6 +150,15 @@ describe('getToken', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  // Dismissing the prompt leaves permission at 'default' — recoverable, so the site can ask
+  // again later. Blocking is not. One code for both left integrators unable to tell them apart.
+  it('distinguishes a dismissed prompt from a blocked one', async () => {
+    const { fetchMock } = stubEnvironment(fakeRegistration(null), 'default')
+
+    await expect(getToken()).rejects.toMatchObject({ code: 'permission-dismissed' })
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it('throws unsupported when the Push API is missing', async () => {
     stubEnvironment(fakeRegistration(null))
     vi.stubGlobal('window', {})
@@ -180,5 +189,27 @@ describe('deleteToken', () => {
     stubEnvironment(registration)
 
     expect(await deleteToken()).toBe(false)
+  })
+
+  // getToken accepts a caller-supplied registration, so deleteToken must too — otherwise a site
+  // managing its own worker gets the server registration removed while the browser stays
+  // subscribed, and the path lookup silently resolves the wrong worker (or none).
+  it('unsubscribes a caller-supplied registration', async () => {
+    const own = fakeSubscription(VAPID_BYTES.slice().buffer)
+    const ownRegistration = fakeRegistration(own)
+    stubEnvironment(fakeRegistration(null))
+    vi.stubGlobal('navigator', {
+      serviceWorker: {
+        register: vi.fn(),
+        // The path lookup must not be what finds the subscription here.
+        getRegistration: vi.fn().mockResolvedValue(undefined),
+      },
+    })
+
+    await getToken({ serviceWorkerRegistration: ownRegistration as unknown as ServiceWorkerRegistration })
+    expect(
+      await deleteToken({ serviceWorkerRegistration: ownRegistration as unknown as ServiceWorkerRegistration }),
+    ).toBe(true)
+    expect(own.unsubscribe).toHaveBeenCalled()
   })
 })

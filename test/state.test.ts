@@ -29,8 +29,20 @@ describe('init / requireConfig', () => {
     expect(requireConfig().serviceWorkerPath).toBe('/sw/push.js')
   })
 
-  it('rejects empty config values', () => {
-    expect(() => init({ baseUrl: '', project: 'website' })).toThrow(TypeError)
-    expect(() => init({ baseUrl: 'https://x.example', project: ' ' })).toThrow(TypeError)
+  // Every failure is documented as a MoonsenderPushError with a code to branch on; init must
+  // not be the one exception that forces callers to also catch TypeError.
+  it('rejects empty config values with invalid-config', () => {
+    for (const config of [
+      { baseUrl: '', project: 'website' },
+      { baseUrl: 'https://x.example', project: ' ' },
+    ]) {
+      try {
+        init(config)
+        expect.unreachable('must throw')
+      } catch (err) {
+        expect(err).toBeInstanceOf(MoonsenderPushError)
+        expect((err as MoonsenderPushError).code).toBe('invalid-config')
+      }
+    }
   })
 })

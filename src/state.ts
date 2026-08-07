@@ -22,8 +22,12 @@ let current: ResolvedConfig | null = null
 export function init(config: MoonsenderConfig): void {
   const baseUrl = (config.baseUrl ?? '').trim().replace(/\/+$/, '')
   const project = (config.project ?? '').trim()
-  if (baseUrl === '') throw new TypeError('moonsender-push: init requires a non-empty baseUrl')
-  if (project === '') throw new TypeError('moonsender-push: init requires a non-empty project')
+  if (baseUrl === '') {
+    throw new MoonsenderPushError('invalid-config', 'init requires a non-empty baseUrl')
+  }
+  if (project === '') {
+    throw new MoonsenderPushError('invalid-config', 'init requires a non-empty project')
+  }
 
   current = {
     baseUrl,
