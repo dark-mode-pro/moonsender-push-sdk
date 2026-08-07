@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/dark-mode-pro/moonsender-push-sdk/compare/v0.4.0...v1.0.0) (2026-08-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* requires a Moonsender platform serving /v1/push. The previous unversioned paths are gone on the server side, so this release and the platform must move together.
+
+### Features
+
+* call the versioned /v1/push wire endpoints ([b37e10e](https://github.com/dark-mode-pro/moonsender-push-sdk/commit/b37e10e8e48d4334c68eaa579f822344be8dfca5))
+
 ## [0.4.0](https://github.com/dark-mode-pro/moonsender-push-sdk/compare/v0.3.2...v0.4.0) (2026-08-04)
 
 
