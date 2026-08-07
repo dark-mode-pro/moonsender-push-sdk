@@ -18,6 +18,12 @@ disagree — the failure mode this design exists to prevent.
 
 Do **not** create releases or `v*` tags through the GitHub UI; the Release PR is the release.
 
+## After a release: bump the pinned CDN versions
+
+The documented CDN URLs are pinned to an exact version and release-please does not rewrite
+them. Once the release is on npm, update `README.md` and `src/sw.ts` here, plus the integration
+guide, demo and example stubs in `moonsender-esp`.
+
 ## Emergency fallback: manual tag
 
 If the bot path is ever unavailable, a hand-pushed tag publishes through the same gate:
